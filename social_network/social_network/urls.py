@@ -20,7 +20,11 @@ from rest_framework.routers import DefaultRouter
 
 
 
-from posts.views import CommentViewSet, LikeViewSet, PostViewSet
+from posts.views import CommentViewSet, LikeViewSet, PostViewSet, index
+
+
+
+
 
 router = DefaultRouter()
 router.register(r'posts', PostViewSet)
@@ -28,6 +32,7 @@ router.register(r'posts/(?P<post_pk>\d+)/comments', CommentViewSet, basename='co
 router.register(r'posts/(?P<post_pk>\d+)/likes', LikeViewSet, basename='likes')
 
 urlpatterns = [
+    path('', index),
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
 
