@@ -1,40 +1,36 @@
-"""
-URL configuration for social_network project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
+from social_network.posts.views import PostViewSet, CommentViewSet, index
 
-
-from posts.views import CommentViewSet, LikeViewSet, PostViewSet, index
-
-
-
-
-
+# Создаем роутер
 router = DefaultRouter()
-router.register(r'posts', PostViewSet)
-router.register(r'posts/(?P<post_pk>\d+)/comments', CommentViewSet, basename='comments')
-router.register(r'posts/(?P<post_pk>\d+)/likes', LikeViewSet, basename='likes')
+router.register(r'posts', PostViewSet, basename='post')  # Базовый URL для постов
 
+# Добавляем кастомные URL для комментариев
 urlpatterns = [
-    path('', index),
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
+    path('', index),
 
+    # Включаем роутинг DRF
+    path('api/', include(router.urls)),  # Все API начинается с /api/
 
+    # URL для работы с комментариями
+    path('api/posts/<int:post_id>/comments/',
+         CommentViewSet.as_view({
+             'post': 'create',  # Создание комментария
+             'get': 'list'  # Получение списка комментариев
+         }),
+         name='comment-list'),
+
+    # URL для работы с конкретным комментарием
+    path('api/posts/<int:post_id>/comments/',
+         CommentViewSet.as_view({
+             'get': 'retrieve',  # Получение комментария
+             'put': 'update',  # Обновление комментария
+             'patch': 'partial_update',  # Частичное обновление
+             'delete': 'destroy'  # Удаление комментария
+         }),
+         name='comment-detail')
 ]
