@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions, status, exceptions
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404, render
 from .models import Post, Like, Comment
@@ -51,24 +52,44 @@ class PostViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    # Обработка лайков через action
-    @action(detail=True, methods=['post'])
-    def like(self, request, pk=None):
-        post = self.get_object()
-        user = request.user
-        like, created = Like.objects.get_or_create(user=user, post=post)
-        if created:
-            return Response({'status': 'liked'}, status=status.HTTP_201_CREATED)
-        like.delete()
-        return Response({'status': 'unliked'}, status=status.HTTP_204_NO_CONTENT)
+class LikeViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return Post.objects.prefetch_related('comments').all()
+    def create(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+
+        if Like.objects.filter(post=post, user=request.user).exists():
+            return Response({'detail': 'Вы уже поставили лайк'}, status=status.HTTP_400_BAD_REQUEST)
+
+        like = Like.objects.create(post=post, user=request.user)
+        serializer = LikeSerializer(like, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        like = get_object_or_404(Like, post=post, user=request.user)
+        like.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def list(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        likes = post.likes.all()
+        serializer = LikeSerializer(likes, many=True, context={'request': request})
+        return Response(serializer.data)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'id'  # указываем, что ищем по полю id
+    lookup_url_kwarg = 'comment_id'  # указываем имя параметра в URL
+
+    # Определяем разрешения для разных действий
+    def get_permissions(self):
+        # Для GET-запросов разрешаем доступ всем
+        if self.action in ['list', 'retrieve']:
+            return [permissions.AllowAny()]
+        # Для остальных действий (создание, обновление, удаление) требуется авторизация
+        return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
         try:

@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from .models import Post, Comment, Like
@@ -32,20 +33,26 @@ class PostDetailSerializer(PostSerializer):
     class Meta(PostSerializer.Meta):
         fields = list(PostSerializer.Meta.fields) + ['comments', ]
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ['id', 'username', 'first_name', 'last_name']  # добавьте нужные поля
+
 class LikeSerializer(serializers.ModelSerializer):
-    # Настраиваем отображение связанных полей
-    user = serializers.StringRelatedField(read_only=True)
-    post = serializers.StringRelatedField(read_only=True)
+    user = UserSerializer(read_only=True)  # используем отдельный сериализатор для пользователя
+    post = serializers.StringRelatedField(read_only=True)  # если нужно только название поста
 
     class Meta:
         model = Like
-        fields = '__all__'  # или явно указать все поля: ['user', 'post', 'created_at']
-        read_only_fields = ['created_at']  # дата создания только для чтения
+        fields = ['id', 'user', 'post', 'created_at']
+        read_only_fields = ['created_at']
 
-    # Дополнительная валидация, если нужно
     def validate(self, data):
-        # Проверяем, что пользователь не может лайкнуть один пост дважды
-        if Like.objects.filter(user=data['user'], post=data['post']).exists():
-            raise serializers.ValidationError("Вы уже лайкнули этот пост")
+        # Проверяем уникальность лайка
+        if Like.objects.filter(
+            user=self.context['request'].user,
+            post_id=self.context['view'].kwargs['post_id']
+        ).exists():
+            raise serializers.ValidationError("Вы уже поставили лайк этому посту")
         return data
 

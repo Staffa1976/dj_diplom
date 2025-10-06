@@ -21,7 +21,7 @@ class Post(models.Model):
         return self.title or 'Без заголовка'
 
     def get_likes_count(self):
-        """Возвращает количество лайков для поста"""
+        # Возвращает количество лайков для поста
         return self.likes.count()
 
     class Meta:
@@ -36,14 +36,13 @@ class Post(models.Model):
 
 
 class Like(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'post')
-        verbose_name = 'Лайк'
-        verbose_name_plural = 'Лайки'
+
 
 
 class Comment(models.Model):

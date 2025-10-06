@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from social_network.posts.views import PostViewSet, CommentViewSet, index
+from posts.views import PostViewSet, CommentViewSet, LikeViewSet, index
 
 # Создаем роутер
 router = DefaultRouter()
@@ -16,7 +16,7 @@ urlpatterns = [
     # Включаем роутинг DRF
     path('api/', include(router.urls)),  # Все API начинается с /api/
 
-    # URL для работы с комментариями
+    # URL для получения списка комментариев и создание нового
     path('api/posts/<int:post_id>/comments/',
          CommentViewSet.as_view({
              'post': 'create',  # Создание комментария
@@ -25,12 +25,42 @@ urlpatterns = [
          name='comment-list'),
 
     # URL для работы с конкретным комментарием
-    path('api/posts/<int:post_id>/comments/',
+    path('api/posts/<int:post_id>/comments/<int:pk>',
          CommentViewSet.as_view({
              'get': 'retrieve',  # Получение комментария
              'put': 'update',  # Обновление комментария
              'patch': 'partial_update',  # Частичное обновление
              'delete': 'destroy'  # Удаление комментария
          }),
-         name='comment-detail')
+         name='comment-detail'),
+
+   # Работа с конкретным комментарием
+    path(
+        'api/posts/<int:post_id>/comments/<int:comment_id>/',
+        CommentViewSet.as_view({
+            'get': 'retrieve',        # Получение комментария
+            'put': 'update',         # Обновление комментария
+            'patch': 'partial_update', # Частичное обновление
+            'delete': 'destroy'      # Удаление комментария
+        }),
+        name='comment-detail'
+    ),
+
+path(
+        'api/posts/<int:post_id>/likes/',
+        LikeViewSet.as_view({
+            'get': 'list',
+            'post': 'create',
+            'delete': 'destroy'
+        }),
+        name='like-list'
+    ),
+    path(
+        'api/posts/<int:post_id>/likes/<int:like_id>/',
+        LikeViewSet.as_view({
+            'get': 'retrieve',
+            'delete': 'destroy'
+        }),
+        name='like-detail'
+    )
 ]

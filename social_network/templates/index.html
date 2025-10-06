@@ -7,15 +7,24 @@
 <body>
     <h1>Это начальная страница социальной сети для обмена фотографиями.</h1>
     <p>
-        <ul>Список постов: /posts/
+        <ul>Посты:
 
-            <li>Конкретный пост: /posts/{id}/</li>
+            <li>GET/api/posts/# Получить список постов</li>
+            <li>POST/api/posts/# Создать новый пост</li>
+            <li>GET/api/posts/{id}/# Получить пост по ID</li>
+            <li>PUT/api/posts/{id}/# Обновить пост</li>
+            <li>PATCH/api/posts/{id}/# Частично обновить пост</li>
+            <li>DELETE /api/posts/{id}/# Удалить пост</li>
+        </ul>
+    </p>
+    <p>
+        <ul>Комментарии:
 
-            <li>Лайки для поста: /posts/{id}/like/</li>
-
-            <li>Комментарии к посту: /posts/{post_id}/comments/</li>
-
-            <li>Конкретный комментарий: /posts/{post_id}/comments/{comment_id}/</li>
+            <li>GET//api/posts/{post_id}/comments/#Получить список комментариев по ID поста</li>
+            <li>POST/api/posts/{post_id}/comments/# Создать новый комментарий</li>
+            <li>PUT/api/posts/{post_id}/comments/{comment_id}/# Обновить комментарий</li>
+            <li>PATCH/api/posts/{post_id}/comments/{comment_id}/# Частично обновить комментарий</li>
+            <li>DELETE/api/posts/{post_id}/comments/{comment_id}/# Удалить комментарийт</li>
         </ul>
     </p>
 
