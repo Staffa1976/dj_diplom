@@ -13,6 +13,10 @@ from .serializers import (
 )
 from django.contrib.auth import get_user_model
 from .permissions import IsAuthorOrReadOnly
+from rest_framework.pagination import PageNumberPagination
+
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 User = get_user_model()
 
@@ -25,7 +29,13 @@ class PostViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
     queryset = Post.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    pagination_class = PageNumberPagination
     http_method_names = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['created_at', 'updated_at']  # Фильтрация по датам
+    search_fields = ['title', 'description']  # Поиск по полям
+    ordering_fields = ['created_at', 'updated_at']  # Сортировка по датам
 
     def get_permissions(self):
         # Разрешаем анонимный доступ для GET-запросов
@@ -54,6 +64,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
 class LikeViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
+    permission_classes=PageNumberPagination
 
     def create(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
@@ -82,6 +93,12 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     lookup_field = 'id'  # указываем, что ищем по полю id
     lookup_url_kwarg = 'comment_id'  # указываем имя параметра в URL
+    pagination_class = PageNumberPagination
+
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_fields = ['created_at']
+    ordering_fields = ['created_at']
+
 
     # Определяем разрешения для разных действий
     def get_permissions(self):

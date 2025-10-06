@@ -1,9 +1,7 @@
 
 from django.db import models
 from django.contrib.auth import get_user_model
-
-
-
+from rest_framework.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -19,6 +17,10 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title or 'Без заголовка'
+
+    def clean(self):
+        if not self.image:
+            raise ValidationError({'image': 'Изображение не должно быть пустым'})
 
     def get_likes_count(self):
         # Возвращает количество лайков для поста
@@ -51,6 +53,7 @@ class Comment(models.Model):
     update_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
     post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
+
 
     def __str__(self):
         return f'Комментарий от пользователя {self.user.username} к посту {self.post.title}'
