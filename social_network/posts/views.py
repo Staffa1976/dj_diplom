@@ -53,14 +53,13 @@ class PostViewSet(viewsets.ModelViewSet):
 
     # Удаление поста
     def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.user != request.user:
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except Exception as e:
             return Response(
-                {'error': 'Только автор может удалить пост'},
-                status=status.HTTP_403_FORBIDDEN
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class LikeViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -102,11 +101,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     # Определяем разрешения для разных действий
     def get_permissions(self):
-        # Для GET-запросов разрешаем доступ всем
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]
-        # Для остальных действий (создание, обновление, удаление) требуется авторизация
-        return [permissions.IsAuthenticated()]
+        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [permissions.IsAuthenticated, IsAuthorOrReadOnly]
+        return super().get_permissions()
 
     def get_queryset(self):
         try:
@@ -127,3 +126,8 @@ class CommentViewSet(viewsets.ModelViewSet):
             raise exceptions.NotFound("Пост не найден")
         except Exception as e:
             raise exceptions.APIException(f"Ошибка при создании комментария: {str(e)}")
+
+    def perform_destroy(self, instance):
+        if instance.user != self.request.user:
+            raise exceptions.PermissionDenied("Только автор может удалить комментарий")
+        instance.delete()

@@ -88,8 +88,8 @@ WSGI_APPLICATION = 'social_network.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE'),
-        'NAME': os.getenv('DB_NAME'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'dj_diplom',
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
