@@ -26,17 +26,7 @@ urlpatterns = [
          }),
          name='comment-list'),
 
-    # URL для работы с конкретным комментарием
-    path('api/posts/<int:post_id>/comments/<int:pk>',
-         CommentViewSet.as_view({
-             'get': 'retrieve',  # Получение комментария
-             'put': 'update',  # Обновление комментария
-             'patch': 'partial_update',  # Частичное обновление
-             'delete': 'destroy'  # Удаление комментария
-         }),
-         name='comment-detail'),
-
-   # Работа с конкретным комментарием
+    # Работа с конкретным комментарием
     path(
         'api/posts/<int:post_id>/comments/<int:comment_id>/',
         CommentViewSet.as_view({
